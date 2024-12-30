@@ -7,26 +7,25 @@ import 'package:flutter/material.dart';
 enum BetterInfiniteStatus { idle, loading, error }
 
 class BetterInfiniteList extends StatefulWidget {
-  const BetterInfiniteList({
-    super.key,
-    required this.itemBuilder,
-    required this.itemCount,
-    this.sepratorBuilder,
-    this.scrollControllerCb,
-    this.direction = Axis.vertical,
-    this.fetchMore,
-    this.hasData = true,
-    this.hasReachedMax = false,
-    this.sepratorSpacing,
-    this.status = BetterInfiniteStatus.idle,
-    this.emptyWidget,
-    this.errorWidget,
-    this.loadingWidget,
-    this.padding,
-    this.shrinkWrap = false,
-    this.errorListWidget,
-    this.loadingListWidget,
-  });
+  const BetterInfiniteList(
+      {super.key,
+      required this.itemBuilder,
+      required this.itemCount,
+      this.sepratorBuilder,
+      this.scrollControllerCb,
+      this.direction = Axis.vertical,
+      this.fetchMore,
+      this.hasReachedMax = false,
+      this.sepratorSpacing,
+      this.status = BetterInfiniteStatus.idle,
+      this.emptyWidget,
+      this.errorWidget,
+      this.loadingWidget,
+      this.padding,
+      this.shrinkWrap = false,
+      this.errorListWidget,
+      this.loadingListWidget,
+      this.scrollPhysics});
 
   final NullableIndexedWidgetBuilder itemBuilder;
   final int itemCount;
@@ -40,13 +39,13 @@ class BetterInfiniteList extends StatefulWidget {
   final WidgetBuilder? errorListWidget;
   final WidgetBuilder? loadingListWidget;
   final Axis direction;
-  final bool hasData;
   final VoidCallback? fetchMore;
   final bool hasReachedMax;
   final BetterInfiniteStatus status;
   final double? sepratorSpacing;
   final EdgeInsetsGeometry? padding;
   final bool shrinkWrap;
+  final ScrollPhysics? scrollPhysics;
   @override
   State<BetterInfiniteList> createState() => _BetterInfiniteListState();
 }
@@ -55,7 +54,7 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
   late final ScrollController scrollController;
 
   BetterInfiniteStatus get status => widget.status;
-  bool get hasData => widget.hasData;
+  bool get hasData => widget.itemCount > 0;
 
   @override
   void initState() {
@@ -96,6 +95,7 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
     }
 
     return ListView.separated(
+      physics: widget.scrollPhysics,
       scrollDirection: widget.direction,
       padding: widget.padding,
       controller: scrollController,

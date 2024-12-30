@@ -1,6 +1,6 @@
 name: better_infinite_list
 description: "A Better Infinite List For handling error and loading in much efficient way."
-version: 0.0.1
+version: 0.0.21
 homepage: https://github.com/NewsunBanjade/BetterInfiniteList
 
 environment:
