@@ -5,3 +5,7 @@
 ## 0.0.21
 
 - hasData removed
+
+## 0.0.22
+
+- Refresh Indicator Added Inside List, To use OnRefesh()
