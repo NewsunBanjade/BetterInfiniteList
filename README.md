@@ -39,7 +39,7 @@ class TestWidget extends StatelessWidget {
             cubit.increaseAndLoad();
           },
           sepratorSpacing: 10,
-          hasData: state.characterResponse?.characters.isNotEmpty ?? false,
+
           status: switch (state.status) {
             Status.failed => BetterInfiniteStatus.error,
             Status.initial => BetterInfiniteStatus.idle,

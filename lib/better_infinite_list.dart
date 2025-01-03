@@ -4,28 +4,28 @@ import 'package:flutter/material.dart';
 
 ///BetterInfiniteList
 
-enum BetterInfiniteStatus { idle, loading, error }
-
 class BetterInfiniteList extends StatefulWidget {
-  const BetterInfiniteList(
-      {super.key,
-      required this.itemBuilder,
-      required this.itemCount,
-      this.sepratorBuilder,
-      this.scrollControllerCb,
-      this.direction = Axis.vertical,
-      this.fetchMore,
-      this.hasReachedMax = false,
-      this.sepratorSpacing,
-      this.status = BetterInfiniteStatus.idle,
-      this.emptyWidget,
-      this.errorWidget,
-      this.loadingWidget,
-      this.padding,
-      this.shrinkWrap = false,
-      this.errorListWidget,
-      this.loadingListWidget,
-      this.scrollPhysics});
+  const BetterInfiniteList({
+    super.key,
+    required this.itemBuilder,
+    required this.itemCount,
+    this.sepratorBuilder,
+    this.scrollControllerCb,
+    this.direction = Axis.vertical,
+    this.fetchMore,
+    this.hasReachedMax = false,
+    this.sepratorSpacing,
+    this.status = BetterInfiniteStatus.idle,
+    this.emptyWidget,
+    this.errorWidget,
+    this.loadingWidget,
+    this.padding,
+    this.shrinkWrap = false,
+    this.errorListWidget,
+    this.loadingListWidget,
+    this.scrollPhysics,
+    this.onRefresh,
+  });
 
   final NullableIndexedWidgetBuilder itemBuilder;
   final int itemCount;
@@ -46,6 +46,8 @@ class BetterInfiniteList extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final bool shrinkWrap;
   final ScrollPhysics? scrollPhysics;
+
+  final RefreshCallback? onRefresh;
   @override
   State<BetterInfiniteList> createState() => _BetterInfiniteListState();
 }
@@ -80,18 +82,20 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
 
   @override
   Widget build(BuildContext context) {
-    if (status == BetterInfiniteStatus.loading && !hasData) {
+    return widget.onRefresh != null
+        ? RefreshIndicator(
+            onRefresh: widget.onRefresh!,
+            child: getChild(),
+          )
+        : getChild();
+  }
+
+  Widget getChild() {
+    if (!hasData && status == BetterInfiniteStatus.loading) {
       return widget.loadingWidget?.call(context) ??
           const Center(
             child: CircularProgressIndicator(),
           );
-    }
-    if (status == BetterInfiniteStatus.idle && (!hasData)) {
-      return widget.emptyWidget?.call(context) ?? const SizedBox.shrink();
-    }
-
-    if (status == BetterInfiniteStatus.error && !hasData) {
-      return widget.errorWidget?.call(context) ?? const SizedBox.shrink();
     }
 
     return ListView.separated(
@@ -101,6 +105,14 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
       controller: scrollController,
       shrinkWrap: widget.shrinkWrap,
       itemBuilder: (context, index) {
+        if (!hasData) {
+          return status.getWidget(
+            context,
+            emptyWidget: widget.emptyWidget,
+            errorWidget: widget.errorWidget,
+          );
+        }
+
         if (index == widget.itemCount) {
           if (status == BetterInfiniteStatus.error) {
             return widget.errorListWidget?.call(context) ??
@@ -134,11 +146,38 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
   }
 
   int getItemCount(BetterInfiniteStatus status) {
+    if (!hasData &&
+        [
+          BetterInfiniteStatus.error,
+          BetterInfiniteStatus.idle,
+          BetterInfiniteStatus.loading,
+        ].contains(status)) {
+      return 1;
+    }
+
     return switch (status) {
       BetterInfiniteStatus.error ||
       BetterInfiniteStatus.loading =>
         widget.itemCount + 1,
       BetterInfiniteStatus.idle => widget.itemCount,
+    };
+  }
+}
+
+enum BetterInfiniteStatus { idle, loading, error }
+
+extension BetterInfiniteStatusX on BetterInfiniteStatus {
+  Widget getWidget(
+    BuildContext context, {
+    Widget Function(BuildContext)? emptyWidget,
+    Widget Function(BuildContext)? errorWidget,
+  }) {
+    return switch (this) {
+      BetterInfiniteStatus.idle =>
+        emptyWidget?.call(context) ?? const SizedBox.shrink(),
+      BetterInfiniteStatus.error =>
+        errorWidget?.call(context) ?? const SizedBox.shrink(),
+      _ => const SizedBox.shrink(),
     };
   }
 }
