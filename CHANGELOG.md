@@ -9,3 +9,7 @@
 ## 0.0.22
 
 - Refresh Indicator Added Inside List, To use OnRefesh()
+
+## 0.0.221
+
+- Loading Widget Not Displaying On Center Fixed

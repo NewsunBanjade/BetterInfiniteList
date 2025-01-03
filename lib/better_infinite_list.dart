@@ -91,11 +91,22 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
   }
 
   Widget getChild() {
-    if (!hasData && status == BetterInfiniteStatus.loading) {
-      return widget.loadingWidget?.call(context) ??
-          const Center(
-            child: CircularProgressIndicator(),
-          );
+    if (!hasData) {
+      return LayoutBuilder(builder: (context, constraint) {
+        final messageWidget = SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: constraint.maxHeight,
+            child: status.getWidget(
+              context,
+              emptyWidget: widget.emptyWidget,
+              errorWidget: widget.errorWidget,
+            ),
+          ),
+        );
+
+        return messageWidget;
+      });
     }
 
     return ListView.separated(
@@ -105,14 +116,6 @@ class _BetterInfiniteListState extends State<BetterInfiniteList> {
       controller: scrollController,
       shrinkWrap: widget.shrinkWrap,
       itemBuilder: (context, index) {
-        if (!hasData) {
-          return status.getWidget(
-            context,
-            emptyWidget: widget.emptyWidget,
-            errorWidget: widget.errorWidget,
-          );
-        }
-
         if (index == widget.itemCount) {
           if (status == BetterInfiniteStatus.error) {
             return widget.errorListWidget?.call(context) ??
@@ -171,13 +174,17 @@ extension BetterInfiniteStatusX on BetterInfiniteStatus {
     BuildContext context, {
     Widget Function(BuildContext)? emptyWidget,
     Widget Function(BuildContext)? errorWidget,
+    Widget Function(BuildContext)? loadingWidget,
   }) {
     return switch (this) {
       BetterInfiniteStatus.idle =>
         emptyWidget?.call(context) ?? const SizedBox.shrink(),
       BetterInfiniteStatus.error =>
         errorWidget?.call(context) ?? const SizedBox.shrink(),
-      _ => const SizedBox.shrink(),
+      BetterInfiniteStatus.loading => loadingWidget?.call(context) ??
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
     };
   }
 }
